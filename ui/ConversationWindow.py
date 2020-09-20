@@ -4,7 +4,7 @@ from neveredit.file.CExoLocString import CExoLocString
 from neveredit.ui import PropWindow
 from neveredit.game.Conversation import PCConvNode
 
-class ConversationNode(wx.TreeItemData):
+class ConversationNode():
     def __init__(self,convNode,convTree):
         wx.TreeItemData.__init__(self)
         self.convNode=convNode

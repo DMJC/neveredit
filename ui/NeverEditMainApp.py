@@ -14,6 +14,7 @@ import tempfile
 
 try:
     import wx
+    from   wx.adv import SplashScreen as SplashScreen
     import wx.html
     import wx.stc
 except:
@@ -141,7 +142,7 @@ class NeverEditMainWindow(wx.Frame,PropertyChangeListener):
         self.statusProgress = wx.Gauge(self.GetStatusBar(),-1,100)
         self.setProgress(0)
                 
-        splitter = wx.SplitterWindow(self,-1,style=wx.NO_3D|wx.SP_3D)
+        splitter = wx.SplitterWindow(self,-1,style=wx.SP_3D)
         
         tID = wx.NewId()
         self.tree = wx.TreeCtrl(splitter,tID,wx.DefaultPosition,\
@@ -589,9 +590,9 @@ class NeverEditMainWindow(wx.Frame,PropertyChangeListener):
                 pass
             self.doRead = False
         if self.RMThread and not self.RMThread.isAlive():
-            if self.splash:
-                self.splash.Show(False)
-                self.splash.Destroy()
+#            if self.splash:
+#                self.splash.Show(False)
+#                self.splash.Destroy()
             self.showToolPalette()
             self.Show(True)
             self.Enable(True)

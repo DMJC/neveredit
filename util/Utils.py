@@ -24,8 +24,8 @@ def getNumPy():
 
 def getLinAlg():
     if use_numeric:
-        import LinearAlgebra
-        return LinearAlgebra
+        import numpy.linalg
+        return numpy.linalg
     else:
         import numarray.linear_algebra
         return numarray.linear_algebra

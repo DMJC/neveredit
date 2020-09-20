@@ -122,13 +122,13 @@ BoxSizer\">\012          <orient>wxHORIZONTAL</orient>\012         \
  <object class=\"sizeritem\">\012            <object class=\"wxBut\
 ton\" name=\"ID_CANCEL\">\012              \012              <label>C\
 ancel</label>\012            </object>\012            \012           \
- <flag>wxALIGN_CENTRE_VERTICAL|wxALIGN_CENTRE_HORIZONTAL</fl\
+ <flag>wxALIGN_CENTRE_VERTICAL</fl\
 ag>\012          </object>\012          <object class=\"sizeritem\">\
 \012            <object class=\"wxButton\" name=\"ID_OK\">\012        \
       \012              <label>Ok</label>\012              \012      \
         <default>1</default>\012            </object>\012         \
-   \012            <flag>wxALIGN_CENTRE_VERTICAL|wxALIGN_CENTRE\
-_HORIZONTAL</flag>\012          </object>\012        </object>\012   \
+   \012            <flag>wxALIGN_CENTRE_VERTICAL</flag>\
+\012          </object>\012        </object>\012   \
      \012        <flag>wxALL|wxALIGN_RIGHT|wxALIGN_BOTTOM</flag\
 >\012        \012        <border>5</border>\012        \012        <cell\
 pos>2,1</cellpos>\012      </object>\012      <growablecols>1</gro\

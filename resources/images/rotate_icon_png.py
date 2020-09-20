@@ -6,7 +6,8 @@ package = 'neveredit.resources.images'
 
 ### wxPython specific functions
 originalExtension = '.png'
-from wxPython.wx import wxImageFromStream, wxBitmapFromImage, wxEmptyIcon
+#from wx import wxImageFromStream, wxBitmapFromImage, wxEmptyIcon
+from wx import ImageFromStream, BitmapFromImage, EmptyIcon
 import cStringIO
 def getData( ):
 	"""Return the data from the resource as a simple string"""

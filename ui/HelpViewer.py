@@ -20,8 +20,8 @@ import wx,wx.html
 
 def makeHelpViewer(helpfiles,cachedir=None):
     # Add the Zip filesystem
-    wx.FileSystem.AddHandler(wx.ZipFSHandler())
-
+#    wx.FileSystem.AddHandler(wx.ZipFSHandler())
+    wx.FileSystem.AddHandler(wx.ArchiveFSHandler())
     # Create the viewer
     helpctrl = wx.html.HtmlHelpController()
     if cachedir:

@@ -23,8 +23,10 @@ class PreferencesDialog(wx.Dialog):
             # not show
         self.tablist = tablist
         resourceText = PreferencesDialog_xrc.data
-        resource = wx.xrc.EmptyXmlResource()
-        resource.LoadFromString(resourceText)
+#        resource = wx.xrc.EmptyXmlResource()
+        resource = wx.xrc.XmlResource()
+#        resource.LoadFromString(resourceText)
+        resource.LoadFromBuffer(resourceText)
 
         dialog = resource.LoadDialog(parent,"PrefDialog")
         notebook = wx.xrc.XRCCTRL(dialog,"PrefNotebook")
@@ -88,7 +90,7 @@ class PreferencesDialog(wx.Dialog):
 
         dialog.Bind(wx.EVT_BUTTON, self.OnOk, id=wx.xrc.XRCID("ID_OK"))
         dialog.Bind(wx.EVT_BUTTON, self.OnCancel, id=wx.xrc.XRCID("ID_CANCEL"))
-        self.PostCreate(dialog)
+#        self.PostCreate(dialog)
 
     def __getPanelIndex(self,notebook,panel):
         index = [notebook.GetPage(i).GetId() for i in
