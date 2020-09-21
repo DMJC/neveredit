@@ -39,7 +39,7 @@ class NoCaseString(str):
 
     def __hash__(self):
         return self.low.__hash__()
-    
+
 class PropControl(PropertyChangeNotifier):
     def __init__(self,control):
         PropertyChangeNotifier.__init__(self)
@@ -70,19 +70,22 @@ class CExoLocStringControl(wx.BoxSizer):
         else:
             self.textCtrl = wx.TextCtrl(propWindow,-1,'',
                                        wx.DefaultPosition,
-                                       (250,24))                
-        wx.EVT_TEXT(propWindow,self.textCtrl.GetId(),propWindow.controlUsed)
+                                       (250,24))
+#        wx.EVT_TEXT(propWindow,self.textCtrl.GetId(),propWindow.controlUsed)
+        self.Bind(wx.EVT_TEXT,propWindow,propWindow.controlUsed,id=self.textCtrl.GetId())
 
         self.label = wx.StaticText(propWindow,-1,'')
 
         self.langIDChoice = wx.Choice(propWindow,-1,choices=langChoices)
         self.langIDChoice.SetSelection(
             neveredit.file.Language.convertFromBIOCode(self.langID))
-        wx.EVT_CHOICE(propWindow,self.langIDChoice.GetId(),self.langSelection)
+#        wx.EVT_CHOICE(propWindow,self.langIDChoice.GetId(),self.langSelection)
+        self.Bind(wx.EVT_CHOICE,propWindow,self.langSelection,id=self.langIDChoice.GetId())
 
         self.genderChoice = wx.Choice(propWindow,-1,choices=genderChoices)
         self.genderChoice.SetSelection(self.gender)
         wx.EVT_CHOICE(propWindow,self.genderChoice.GetId(),self.langSelection)
+#       self.Bind(wx.EVT_CHOICE,propWindow,self.langSelection,id=self.genderChoice.GetId())
 
         choiceSizer.Add(self.langIDChoice, 0, wx.ALL, 5)
         choiceSizer.Add(self.genderChoice, 0, wx.ALL, 5)
@@ -103,7 +106,7 @@ class CExoLocStringControl(wx.BoxSizer):
         else:
             self.label.SetLabel("This is a string from the current module.")
         self.textCtrl.SetValue(text)
-  
+
     def langSelection(self,event):
         self.langID = neveredit.file.Language.convertToBIOCode(self.langIDChoice.GetSelection())
         self.gender = self.genderChoice.GetSelection()
@@ -134,19 +137,19 @@ class PropWindow(scrolled.ScrolledPanel, ResourceListChangeListener):
         self.propGrid = wx.GridBagSizer()
         self.SetSizer(self.propGrid)
         self.SetAutoLayout(True)
-        self.SetupScrolling(scroll_x=False)        
+        self.SetupScrolling(scroll_x=False)
         self.propsChanged = False
         self.changeObserver = None
         self.item = None
         self.visualChanged = False
-        
+
         self.propLabels = []
         self.lines = []
-        self.propControls = {}        
+        self.propControls = {}
         # get default language preference for CEXOLocStrings
         p = neveredit.util.Preferences.getPreferences()
         self.defaultlang = p['DefaultLocStringLang']
-         
+
     def getControlByPropName(self,name):
         for propControl,prop in self.propControls.values():
             if prop.getName() == name:
@@ -163,7 +166,7 @@ class PropWindow(scrolled.ScrolledPanel, ResourceListChangeListener):
                 self.updateResRefControl(propControl.control,typeSpec,prop)
             elif typeSpec[0] == "CExoString" and len(typeSpec) > 1:
                 self.updateCustomChoiceControl(propControl.control,typeSpec,prop)
-    
+
     def makePropsForItem(self,item,observer=None):
         '''Make all property controls for a given item.
         The item must be implementing the NeverData interface.'''
@@ -199,10 +202,10 @@ class PropWindow(scrolled.ScrolledPanel, ResourceListChangeListener):
                                           span=(1,3),flag=wx.EXPAND)
                         self.lines.append(line)
                         first = False
-                        
+
                     r = 2*len(self.propControls)
                     self.propGrid.Add(label, pos=(r,0),
-                                      flag=wx.ALIGN_LEFT|wx.LEFT, border=10)                    
+                                      flag=wx.ALIGN_LEFT|wx.LEFT, border=10)
                     self.propLabels.append(label)
                     self.propGrid.Add(control, pos=(r,2),
                                       flag=wx.ALIGN_RIGHT|wx.RIGHT, border=10)
@@ -223,7 +226,7 @@ class PropWindow(scrolled.ScrolledPanel, ResourceListChangeListener):
         #self.propGrid.SetVirtualSizeHints(self)
         self.FitInside()
         logger.debug("done making props")
-        
+
     def applyPropControlValues(self,item):
         '''This method reads back in the values of currently displayed
         property controls and updates the actual module file to reflect
@@ -296,7 +299,7 @@ class PropWindow(scrolled.ScrolledPanel, ResourceListChangeListener):
         self.propsChanged = False
         self.visualChanged = False
         return tmp
-        
+
     def makeControlForProp(self,prop,parent):
         '''Make a wxWindows control for the given NWN property and add
         it to the given parent wxWindow.'''
@@ -316,6 +319,7 @@ class PropWindow(scrolled.ScrolledPanel, ResourceListChangeListener):
             else:
                 control = wx.TextCtrl(parent,-1,prop.getValue(),wx.DefaultPosition,(250,24))
                 wx.EVT_TEXT(self,control.GetId(),self.controlUsed)
+#				self.Bind(wx.EVT_TEXT,self,self.controlUsed,id=control.GetId())
         elif type == 'Percentage':
             control = wx.SpinCtrl(parent,-1)
             control.SetRange(0,100)
@@ -349,7 +353,7 @@ class PropWindow(scrolled.ScrolledPanel, ResourceListChangeListener):
         elif type == "BGRColour":
             blue = prop.getValue() >> 16
             green = (prop.getValue() >> 8) & (0xff)
-            red = prop.getValue() & (0xff)            
+            red = prop.getValue() & (0xff)
             control = GenButton(parent,-1,'',wx.DefaultPosition,
                                   wx.Size(40,40))
             control.SetBezelWidth(0)
@@ -399,7 +403,7 @@ class PropWindow(scrolled.ScrolledPanel, ResourceListChangeListener):
             else:
                 control = wx.Choice(parent,-1,choices=[cleanstr(s) for s in choices])
             control.SetSelection(prop.getValue())
-                
+
         elif type == 'Portrait':
             p = neverglobals.getResourceManager().getPortraitByIndex(prop.getValue(),'s')
             if p:
@@ -423,17 +427,17 @@ class PropWindow(scrolled.ScrolledPanel, ResourceListChangeListener):
 
     def makeCustomChoiceControl(self, typeSpec, prop, parent):
         keyList, index = self.getCustomChoiceList(typeSpec, prop)
-        control = wx.Choice(parent,-1,choices=keyList)                
+        control = wx.Choice(parent,-1,choices=keyList)
         control.SetSelection(index)
         wx.EVT_CHOICE(self,control.GetId(),self.controlUsed)
         return control
 
-    def updateCustomChoiceControl(self, control, typeSpec, prop):        
+    def updateCustomChoiceControl(self, control, typeSpec, prop):
         keyList, index = self.getCustomChoiceList(typeSpec, prop)
         control.Clear()
         control.AppendItems(keyList)
         control.SetSelection(index)
-    
+
     def getCustomChoiceList(self, typeSpec, prop):
         tags = []
         if typeSpec[1] == "Creature_Tags":
@@ -465,7 +469,7 @@ class PropWindow(scrolled.ScrolledPanel, ResourceListChangeListener):
             wx.EVT_TEXT(self,control.GetId(),self.controlUsed)
         return control
 
-    def updateResRefControl(self, control, typeSpec, prop):        
+    def updateResRefControl(self, control, typeSpec, prop):
         if len(typeSpec) > 1:
             keyList, index = self.getResRefList(typeSpec, prop)
             control.Clear()
@@ -474,7 +478,7 @@ class PropWindow(scrolled.ScrolledPanel, ResourceListChangeListener):
                 control.SetSelection(index)
             else:
                 control.SetSelection(0)
-    
+
     def getResRefList(self, typeSpec, prop):
         keys = neverglobals.getResourceManager().getDirKeysWithExtensions(typeSpec[1])
         keyList = [''] #can leave empty
@@ -500,7 +504,7 @@ class PropWindow(scrolled.ScrolledPanel, ResourceListChangeListener):
             cd = dlg.GetColourData()
             control.SetBackgroundColour(cd.GetColour())
             self.controlUsed(event)
-            
+
     def handlePortraitButton(self,event):
         '''Callback for the portrait selection button'''
         portraits = neverglobals.getResourceManager().getPortraitNameList()

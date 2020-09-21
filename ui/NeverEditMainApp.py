@@ -58,17 +58,17 @@ import gettext
 
 gettext.install('neveredit','translations')
 
-class MySplashScreen(wx.SplashScreen):
+class MySplashScreen(wx.adv.SplashScreen):
     def __init__(self,pic):
-        wx.SplashScreen.__init__(self, pic,
-                                 wx.SPLASH_CENTRE_ON_SCREEN|
-                                 wx.SPLASH_NO_TIMEOUT,
+        wx.adv.SplashScreen.__init__(self, pic,
+                                 wx.adv.SPLASH_CENTRE_ON_SCREEN|
+                                 wx.adv.SPLASH_NO_TIMEOUT,
                                  4000, None, -1,
                                  style = wx.SIMPLE_BORDER
                                  |wx.FRAME_NO_TASKBAR
                                  |wx.STAY_ON_TOP)
 
-##\mainpage
+##mainpage
 class NeverEditMainWindow(wx.Frame,PropertyChangeListener):
     '''<html><body>
 
@@ -108,13 +108,14 @@ class NeverEditMainWindow(wx.Frame,PropertyChangeListener):
     <p>Have fun,<br><i>sumpfork</i></p>
 
     </body></html>'''
-    
+
     def __init__(self,parent,id,title):
         '''Constructor. Sets up static controls and menus.'''
         wx.InitAllImageHandlers()
         self.splash = MySplashScreen(neveredit_logo_jpg.getBitmap())
-        wx.EVT_CLOSE(self.splash,self.OnCloseSplash)
-        
+#        wx.EVT_CLOSE(self.splash,self.OnCloseSplash)
+        self.splash.Bind(wx.EVT_CLOSE,self.OnCloseSplash)
+
         self.splash.Show(True)
 
         wx.Frame.__init__(self,parent,-1,title,size=(800,600))
@@ -127,40 +128,44 @@ class NeverEditMainWindow(wx.Frame,PropertyChangeListener):
         self.map = None
         self.model = None
         self.helpviewer = None
-        
+
         self.idToTreeItemMap = {}
         self.detachedMap = {}
 
         self.threadAlive = False
-    
+
         self.selectThisItem = None
-        
+
         #status bar
         self.CreateStatusBar(2)
         self.SetStatusWidths([-1,150])
         self.SetStatusText(_("Welcome to neveredit..."))
         self.statusProgress = wx.Gauge(self.GetStatusBar(),-1,100)
         self.setProgress(0)
-                
+
         splitter = wx.SplitterWindow(self,-1,style=wx.SP_3D)
-        
+
         tID = wx.NewId()
         self.tree = wx.TreeCtrl(splitter,tID,wx.DefaultPosition,\
                                wx.DefaultSize,\
                                wx.TR_HAS_BUTTONS)
         self.selectedTreeItem = None
         self.lastAreaItem = None
-        
-        wx.EVT_TREE_SEL_CHANGED(self,tID,self.treeSelChanged)
-        wx.EVT_TREE_ITEM_EXPANDING(self,tID,self.treeItemExpanding)
-        wx.EVT_TREE_ITEM_COLLAPSED(self,tID,self.treeItemCollapsed)
+
+#        wx.EVT_TREE_SEL_CHANGED(self,tID,self.treeSelChanged)
+#        wx.EVT_TREE_ITEM_EXPANDING(self,tID,self.treeItemExpanding)
+#        wx.EVT_TREE_ITEM_COLLAPSED(self,tID,self.treeItemCollapsed)
+
+        self.Bind(wx.EVT_TREE_SEL_CHANGED,self.treeSelChanged,id=tID)
+        self.Bind(wx.EVT_TREE_ITEM_EXPANDING,self.treeItemExpanding,id=tID)
+        self.Bind(wx.EVT_TREE_ITEM_COLLAPSED,self.treeItemCollapsed,id=tID)
 
         self.notebook = Notebook.Notebook(splitter)
         self.Bind(wx.EVT_NOTEBOOK_PAGE_CHANGED,self.OnNotebookPageChanged,
                   self.notebook)
-        
+
         self.SetSizeHints(minW=600,minH=200)
-        
+
         splitter.SplitVertically(self.tree,self.notebook,180)
         splitter.SetMinimumPaneSize(100)
 
@@ -177,9 +182,9 @@ class NeverEditMainWindow(wx.Frame,PropertyChangeListener):
 
         self.toolPalette = None
         self.props = None
-        
+
         self.setupMenus()
-        
+
         self.scriptEditorFrame = wx.Frame(self,-1,"Script Editor",(100,100))
         self.scriptEditor = ScriptEditor.ScriptEditor(self.scriptEditorFrame,-1)
         self.scriptEditorFrame.SetSize((700,500))
@@ -188,8 +193,8 @@ class NeverEditMainWindow(wx.Frame,PropertyChangeListener):
 
         self.showScriptEditorFix = False
 
-        wx.EVT_CLOSE(self.scriptEditorFrame,self.OnCloseWindow)
-
+#        wx.EVT_CLOSE(self.scriptEditorFrame,self.OnCloseWindow)
+        self.scriptEditor.Bind(wx.EVT_CLOSE,self.OnCloseWindow)
         self.readingERF = False
         self.RMThread = None
 
@@ -198,12 +203,16 @@ class NeverEditMainWindow(wx.Frame,PropertyChangeListener):
 
         self.ID_TIMER = 200
         self.timer = wx.Timer(self,self.ID_TIMER)
-        wx.EVT_TIMER(self,self.ID_TIMER,self.kick)
+#        wx.EVT_TIMER(self,self.ID_TIMER,self.kick)
+#        self.Bind(wx.EVT_TIMER,self.kick)
+        self.timer.Bind(wx.EVT_TIMER,self.kick)
         self.timer.Start(200)
-        wx.EVT_IDLE(self,self.idle)
-        wx.EVT_CLOSE(self,self.OnClose)
-        wx.EVT_SIZE(self,self.OnSize)
-
+#        wx.EVT_IDLE(self,self.idle)
+#        wx.EVT_CLOSE(self,self.OnClose)
+#        wx.EVT_SIZE(self,self.OnSize)
+        self.Bind(wx.EVT_IDLE,self.idle)
+        self.Bind(wx.EVT_CLOSE,self.OnClose)
+        self.Bind(wx.EVT_SIZE,self.OnSize)
         tmp = self.splash
         self.splash = MySplashScreen(neveredit_logo_init_jpg.getBitmap())
         self.splash.Show(True)
@@ -244,7 +253,7 @@ class NeverEditMainWindow(wx.Frame,PropertyChangeListener):
         self.resourceManager.setProgressDisplay(self)
         self.resourceManager.scanGameDir(self.prefs['NWNAppDir'])
         Script.init_nwscript_keywords()
-        
+
     def setProgress(self,prog):
         '''Implementing the progress display interface'''
         self.progress = prog
@@ -257,7 +266,7 @@ class NeverEditMainWindow(wx.Frame,PropertyChangeListener):
         '''Implementing the progress display interface'''
         self.SetStatusText(s)
         wx.YieldIfNeeded()
-        
+
     def showScriptEditor(self):
         self.scriptEditorFrame.Show(True)
         self.scriptEditorFrame.Raise()
@@ -321,8 +330,8 @@ class NeverEditMainWindow(wx.Frame,PropertyChangeListener):
 
         self.filehistory = wx.FileHistory()
         self.filehistory.UseMenu(self.filemenu)
-        wx.EVT_MENU_RANGE(self,wx.ID_FILE1,wx.ID_FILE9,self.OnFileHistory)
-
+#        wx.EVT_MENU_RANGE(self, wx.ID_FILE1, wx.ID_FILE9, self.OnFileHistory)
+        self.Bind(wx.EVT_MENU_RANGE, self.OnFileHistory, id=wx.ID_FILE1, id2=wx.ID_FILE9)
         self.editmenu = wx.Menu()
         self.editmenu.Append(self.ID_CUT, '&'+_('Cut'), _('cut'))
         self.editmenu.Append(self.ID_COPY, '&'+_('Copy'), _('copy'))
@@ -332,22 +341,26 @@ class NeverEditMainWindow(wx.Frame,PropertyChangeListener):
         self.sep2=self.editmenu.AppendSeparator()
         self.editmenu.Append(self.ID_PREFS,'&' + _('Preferences...'),
                              _('neveredit preferences dialog'))
-        
-        wx.EVT_MENU(self,self.ID_DEL,self.OnDelete)
-        wx.EVT_MENU(self,self.ID_CUT,self.OnCut)
-        wx.EVT_MENU(self,self.ID_COPY,self.OnCopy)
-        wx.EVT_MENU(self,self.ID_PASTE,self.OnPaste)
+
+#        wx.EVT_MENU(self,self.ID_DEL,self.OnDelete)
+#        wx.EVT_MENU(self,self.ID_CUT,self.OnCut)
+#        wx.EVT_MENU(self,self.ID_COPY,self.OnCopy)
+#        wx.EVT_MENU(self,self.ID_PASTE,self.OnPaste)
+        self.Bind(wx.EVT_MENU,self.OnDelete,id=self.ID_DEL)
+        self.Bind(wx.EVT_MENU,self.OnCut,id=self.ID_CUT)
+        self.Bind(wx.EVT_MENU,self.OnCopy,id=self.ID_COPY)
+        self.Bind(wx.EVT_MENU,self.OnPaste,id=self.ID_PASTE)
         self.editmenu.Bind(wx.EVT_MENU_OPEN, self.OnEditMenu)
 
         self.windowmenu = wx.Menu()
         self.windowmenu.Append(self.ID_MAIN_WINDOW_MITEM, _('Main Window'))
         self.windowmenu.Append(self.ID_PALETTE_WINDOW_MITEM, _('Palette Window'))
         self.windowmenu.Append(self.ID_SCRIPT_WINDOW_MITEM, _('Script Editor'))
-        
+
         helpmenu = wx.Menu()
         helpmenu.Append(self.ID_ABOUT, '&' + _('About...'), _("About neveredit"))
         helpmenu.Append(self.ID_HELP,'&'+ _('neveredit Help'), _("neveredit Help"))
-        
+
         menuBar = wx.MenuBar()
         menuBar.Append(self.filemenu,"&" + _("File"))
         menuBar.Append(self.editmenu, "&" + _("Edit"))
@@ -355,28 +368,45 @@ class NeverEditMainWindow(wx.Frame,PropertyChangeListener):
         menuBar.Append(helpmenu, "&" + _("Help"))
         self.SetMenuBar(menuBar)
 
-        wx.EVT_MENU(self,self.ID_OPEN,self.openFile)
-        wx.EVT_MENU(self,self.ID_ADD_ERF,self.addERFFile)
-        wx.EVT_MENU(self,self.ID_ADD_RESOURCE,self.addResourceFile)
-        wx.EVT_MENU(self,self.ID_SAVE,self.saveFile)
-        wx.EVT_MENU(self,self.ID_SAVEAS,self.saveFileAs)
-        wx.EVT_MENU(self,self.ID_ABOUT,self.about)
-        wx.EVT_MENU(self,self.ID_PREFS,self.OnPreferences)
-        wx.EVT_MENU(self,self.ID_EXIT,self.exit)
-        wx.EVT_MENU(self,self.ID_HELP,self.help)
-        wx.EVT_MENU(self,self.ID_MAIN_WINDOW_MITEM, self.windowMenu)
-        wx.EVT_MENU(self,self.ID_SCRIPT_WINDOW_MITEM, self.windowMenu)
-        wx.EVT_MENU(self,self.ID_PALETTE_WINDOW_MITEM, self.windowMenu)
-        
+#        wx.EVT_MENU(self,self.ID_OPEN,self.openFile)
+#        wx.EVT_MENU(self,self.ID_ADD_ERF,self.addERFFile)
+#        wx.EVT_MENU(self,self.ID_ADD_RESOURCE,self.addResourceFile)
+#        wx.EVT_MENU(self,self.ID_SAVE,self.saveFile)
+#        wx.EVT_MENU(self,self.ID_SAVEAS,self.saveFileAs)
+#        wx.EVT_MENU(self,self.ID_ABOUT,self.about)
+#        wx.EVT_MENU(self,self.ID_PREFS,self.OnPreferences)
+#        wx.EVT_MENU(self,self.ID_EXIT,self.exit)
+#        wx.EVT_MENU(self,self.ID_HELP,self.help)
+#        wx.EVT_MENU(self,self.ID_MAIN_WINDOW_MITEM, self.windowMenu)
+#        wx.EVT_MENU(self,self.ID_SCRIPT_WINDOW_MITEM, self.windowMenu)
+#        wx.EVT_MENU(self,self.ID_PALETTE_WINDOW_MITEM, self.windowMenu)
+
+        self.Bind(wx.EVT_MENU,self.openFile,id=self.ID_OPEN)
+        self.Bind(wx.EVT_MENU,self.addERFFile,id=self.ID_ADD_ERF)
+        self.Bind(wx.EVT_MENU,self.addResourceFile,id=self.ID_ADD_RESOURCE)
+        self.Bind(wx.EVT_MENU,self.saveFile,id=self.ID_SAVE)
+        self.Bind(wx.EVT_MENU,self.saveFileAs,id=self.ID_SAVEAS)
+        self.Bind(wx.EVT_MENU,self.about,id=self.ID_ABOUT)
+        self.Bind(wx.EVT_MENU,self.OnPreferences,id=self.ID_PREFS)
+        self.Bind(wx.EVT_MENU,self.exit,id=self.ID_EXIT)
+        self.Bind(wx.EVT_MENU,self.help,id=self.ID_HELP)
+        self.Bind(wx.EVT_MENU,self.windowMenu,id=self.ID_MAIN_WINDOW_MITEM)
+        self.Bind(wx.EVT_MENU,self.windowMenu,id=self.ID_SCRIPT_WINDOW_MITEM)
+        self.Bind(wx.EVT_MENU,self.windowMenu,id=self.ID_PALETTE_WINDOW_MITEM)
+        self.Bind(wx.EVT_MENU,self.OnDelete,id=self.ID_DEL)
+        self.Bind(wx.EVT_MENU,self.OnCut,id=self.ID_CUT)
+        self.Bind(wx.EVT_MENU,self.OnCopy,id=self.ID_COPY)
+        self.Bind(wx.EVT_MENU,self.OnPaste,id=self.ID_PASTE)
+
         #wx.EVT_MENU(self,self.ID_DETACH,self.OnDetach)
 
     def OnPaste(self,event):
         '''Perform a paste operation'''
         inFocus = wx.Window.FindFocus()
-        if not inFocus:            
+        if not inFocus:
             return
         if inFocus == self.scriptEditor.getCurrentEditor():
-            self.scriptEditor.OnPaste(event)        
+            self.scriptEditor.OnPaste(event)
         if not wx.TheClipboard.Open():
             logger.error("Can't open system clipboard")
             return
@@ -398,7 +428,7 @@ class NeverEditMainWindow(wx.Frame,PropertyChangeListener):
                 return
             data = wx.TextDataObject(selection)
             wx.TheClipboard.AddData(data)
-            wx.TheClipboard.Close()        
+            wx.TheClipboard.Close()
 
     def OnDelete(self,event):
         '''Perform a delete operation'''
@@ -422,7 +452,7 @@ class NeverEditMainWindow(wx.Frame,PropertyChangeListener):
             wx.TheClipboard.Close()
             if hasattr(inFocus,'Remove'):
                 inFocus.Remove(inFocus.GetSelection()[0],inFocus.GetSelection()[1])
-            
+
     def getCurrentTextSelection(self):
         inFocus = wx.Window.FindFocus()
         if not inFocus:
@@ -431,7 +461,7 @@ class NeverEditMainWindow(wx.Frame,PropertyChangeListener):
         if hasattr(inFocus,'GetStringSelection'):
             selection = inFocus.GetStringSelection()
         return selection,inFocus
-    
+
     def OnEditMenu(self,event):
         self.editmenu.Enable(self.ID_CUT,False)
         self.editmenu.Enable(self.ID_COPY,False)
@@ -444,7 +474,7 @@ class NeverEditMainWindow(wx.Frame,PropertyChangeListener):
         if inFocus == self.scriptEditor.getCurrentEditor():
             self.scriptEditor.setEditMenu(self.editmenu)
             self.scriptEditor.OnEditMenu(event,self)
-        
+
         # If we have highlighted text, enable the appropriate options
         if selection:
             self.editmenu.Enable(self.ID_COPY,True)
@@ -463,7 +493,7 @@ class NeverEditMainWindow(wx.Frame,PropertyChangeListener):
             self.editmenu.Enable(self.ID_PASTE,True)
 
         wx.TheClipboard.Close()
-        
+
     def makePropPage(self):
         '''Initialize the static controls for the properties notebook page.'''
         self.props = PropWindow.PropWindow(self.notebook)
@@ -476,7 +506,7 @@ class NeverEditMainWindow(wx.Frame,PropertyChangeListener):
         self.selectedTreeItem = None
         self.tree.DeleteAllItems()
         self.treeRoot = self.tree.AddRoot(self.module.getName())
-        self.tree.SetPyData(self.treeRoot,self.module)
+        self.tree.SetItemData(self.treeRoot,self.module)
         wx.BeginBusyCursor()
         self.doTreeFromERF()
         self.treeFromERFDone()
@@ -496,7 +526,7 @@ class NeverEditMainWindow(wx.Frame,PropertyChangeListener):
         (someone used a control, usually).'''
         self.fileChanged = fc
         self.filemenu.Enable(self.ID_SAVE,fc)
-        
+
     def treeFromERFDone(self):
         '''This gets called when we finish loading a new ERF file.
         It gets the interface into its final state and cleans up a bit.'''
@@ -520,12 +550,12 @@ class NeverEditMainWindow(wx.Frame,PropertyChangeListener):
         self.tree.UnselectAll()
         self.tree.SelectItem(self.treeRoot)
         self.setStatus("Ready.")
-        
+
     def OnFileHistory(self,event):
         '''Callback for someone selecting a file history menu item.'''
         fileNum = event.GetId() - wx.ID_FILE1
         self.readFile(self.filehistory.GetHistoryFile(fileNum))
-        
+
     def OnSize(self,event):
         rect = self.GetStatusBar().GetFieldRect(1)
         self.statusProgress.SetPosition((rect.x+1,rect.y+1))
@@ -543,7 +573,7 @@ class NeverEditMainWindow(wx.Frame,PropertyChangeListener):
             scriptItem = self.tree.AppendItem(self.scriptRoot,name)
             scripts[s].setNWNDir(self.prefs['NWNAppDir'])
             scripts[s].setModule(self.fname)
-            self.tree.SetPyData(scriptItem,scripts[s])
+            self.tree.SetItemData(scriptItem,scripts[s])
 
     def addConversations(self):
         '''Add the conversations contained in our module to the interface.'''
@@ -555,7 +585,7 @@ class NeverEditMainWindow(wx.Frame,PropertyChangeListener):
         for c in conversationNames:
             name = c.split('.')[0]
             conversationItem = self.tree.AppendItem(self.conversationRoot,name)
-            self.tree.SetPyData(conversationItem,Conversation(c,conversations[c]))
+            self.tree.SetItemData(conversationItem,Conversation(c,conversations[c]))
 
     def addFactions(self):
         '''Add the factions contained in our module to the interface'''
@@ -565,7 +595,7 @@ class NeverEditMainWindow(wx.Frame,PropertyChangeListener):
         factionNames.sort()
         for f in factionNames:
             factionItem = self.tree.AppendItem(self.factionRoot,f)
-            self.tree.SetPyData(factionItem,factions[f])
+            self.tree.SetItemData(factionItem,factions[f])
 
     def init(self):
         '''Schedule the the app init routine.'''
@@ -621,7 +651,7 @@ class NeverEditMainWindow(wx.Frame,PropertyChangeListener):
             self.tree.SelectItem(item)
         else:
             logger.warning('cannot find tree item with id %d' % id)
-        
+
     def OnScriptAdded(self,event):
         """event handler for new script being added to module"""
         self.scriptEditor.addChangeListener(self.setFileChanged)
@@ -658,13 +688,13 @@ class NeverEditMainWindow(wx.Frame,PropertyChangeListener):
         self.maybeApplyPropControlValues()
         self.selectedTreeItem = None
         self.tree.Unselect()
-        
+
     def makeAreaItem(self,item,area):
         '''Create the parent tree item for an area'''
         areaItem = self.tree.AppendItem(item,area.getName())
         self.tree.SetItemHasChildren(areaItem,True)
-        self.tree.SetPyData(areaItem,area)
-        
+        self.tree.SetItemData(areaItem,area)
+
     def subtreeFromArea(self,areaItem,area):
         '''Create a new subtree for a module area.'''
         doors = area.getDoors()
@@ -673,9 +703,9 @@ class NeverEditMainWindow(wx.Frame,PropertyChangeListener):
             for door in doors:
                 doorItem = self.tree.AppendItem(doorParentItem,
                                                 door.getName())
-                self.tree.SetPyData(doorItem,door)
+                self.tree.SetItemData(doorItem,door)
                 self.idToTreeItemMap[door.getNevereditId()] = doorItem
-            
+
         placeables = area.getPlaceables()
         if len(placeables) > 0:
             placeableParentItem = self.tree.AppendItem(areaItem,
@@ -683,7 +713,7 @@ class NeverEditMainWindow(wx.Frame,PropertyChangeListener):
             for placeable in placeables:
                 placeableItem = self.tree.AppendItem(placeableParentItem,
                                                      placeable.getName())
-                self.tree.SetPyData(placeableItem,placeable)
+                self.tree.SetItemData(placeableItem,placeable)
                 self.idToTreeItemMap[placeable.getNevereditId()] = placeableItem
 
         creatures = area.getCreatures()
@@ -693,16 +723,16 @@ class NeverEditMainWindow(wx.Frame,PropertyChangeListener):
             for creature in creatures:
                 creatureItem = self.tree.AppendItem(creatureParentItem,
                                                     creature.getName())
-                self.tree.SetPyData(creatureItem,creature)
+                self.tree.SetItemData(creatureItem,creature)
                 self.idToTreeItemMap[creature.getNevereditId()] = creatureItem
-        
+
         items = area.getItems()
         if len(items) > 0:
             itemParentItem = self.tree.AppendItem(areaItem,_('Items'))
             for item in items:
                 itemItem = self.tree.AppendItem(itemParentItem,
                                                 item.getName())
-                self.tree.SetPyData(itemItem,item)
+                self.tree.SetItemData(itemItem,item)
                 self.idToTreeItemMap[item.getNevereditId()] = itemItem
 
         waypoints = area.getWayPoints()
@@ -711,31 +741,31 @@ class NeverEditMainWindow(wx.Frame,PropertyChangeListener):
             for waypoint in waypoints:
                 waypointItem = self.tree.AppendItem(waypointParentItem,
                                                 waypoint.getName())
-                self.tree.SetPyData(waypointItem,waypoint)
+                self.tree.SetItemData(waypointItem,waypoint)
                 self.idToTreeItemMap[waypoint.getNevereditId()] = waypointItem
 
     def isAreaItem(self,item):
-        data = self.tree.GetPyData(item)
+        data = self.tree.GetItemData(item)
         return data and data.__class__ == Area.Area
-    
+
     def getAreaForTreeItem(self,item):
         '''Get the area associated with this tree item'''
         item = self.getParentAreaItem(item)
         if item:
-            return self.tree.GetPyData(item)
+            return self.tree.GetItemData(item)
         else:
             return None
 
     def getParentAreaItem(self,item):
         '''Get the parent item in the tree that contains the area'''
         while item:
-            data = self.tree.GetPyData(item)
+            data = self.tree.GetItemData(item)
             if data and data.__class__ == Area.Area:
                 return item
             else:
                 item = self.tree.GetItemParent(item)
         return None
-    
+
     def treeItemExpanding(self,event):
         """Dynamically create the children of the currently expanding item."""
         item = event.GetItem()
@@ -755,13 +785,13 @@ class NeverEditMainWindow(wx.Frame,PropertyChangeListener):
         get the data stored with the currently selected tree item
         @return: the stored data object of the current item
         '''
-        return self.tree.GetPyData(self.tree.GetSelection())
+        return self.tree.GetItemData(self.tree.GetSelection())
 
     def OnNotebookPageChanged(self,event):
         '''Callback for notebook page changing event'''
         self.maybeApplyPropControlValues()
         self.syncDisplayedPage()
-        
+
     def syncDisplayedPage(self):
         '''
         The main application notebook does a lazy update: only when
@@ -772,8 +802,8 @@ class NeverEditMainWindow(wx.Frame,PropertyChangeListener):
         the content is loaded if it has not been loaded before.
         '''
         if not self.selectedTreeItem:
-            return        
-        data = self.tree.GetPyData(self.selectedTreeItem)
+            return
+        data = self.tree.GetItemData(self.selectedTreeItem)
         area = self.getAreaForTreeItem(self.selectedTreeItem)
         tag = self.notebook.getSelectedTag()
         if not data and not area:
@@ -819,7 +849,7 @@ class NeverEditMainWindow(wx.Frame,PropertyChangeListener):
             self.tree.Expand(event.GetItem())
         if not self.selectedTreeItem:
             return
-        data = self.tree.GetPyData(self.selectedTreeItem)
+        data = self.tree.GetItemData(self.selectedTreeItem)
         notebookSelection = self.notebook.GetSelection()
         if hasattr(data,'iterateProperties') and\
                not self.notebook.getPageByTag('props'):
@@ -841,7 +871,7 @@ class NeverEditMainWindow(wx.Frame,PropertyChangeListener):
             self.notebook.deletePageByTag('map')
         if area and self.toolPalette:
             self.toolPalette.toggleToolOn(ToolPalette.SELECTION_TOOL)
-        
+
         if self.notebook.getPageByTag('model') and not hasattr(data,'getModel'):
             self.notebook.deletePageByTag('model')
         if hasattr(data,'getModel'):
@@ -880,7 +910,7 @@ class NeverEditMainWindow(wx.Frame,PropertyChangeListener):
         else:
             self.notebook.deletePageByTag('conversation')
             self.notebook.deletePageByTag('factions')
-                    
+
         if notebookSelection < self.notebook.GetPageCount() and\
                not notebookSelection == self.notebook.getPageInfoByTag('welcome')[0]:
             self.notebook.SetSelection(notebookSelection)
@@ -899,7 +929,7 @@ class NeverEditMainWindow(wx.Frame,PropertyChangeListener):
         # kill any thread playing BMU sound
         SoundControl.Event_Die.set()
         if self.selectedTreeItem:
-            data = self.tree.GetPyData(self.selectedTreeItem)
+            data = self.tree.GetItemData(self.selectedTreeItem)
             if data:
                 if data.__class__ == Conversation:
                     self.notebook.getPageByTag('conversation').maybeApplyPropControlValues()
@@ -912,17 +942,17 @@ class NeverEditMainWindow(wx.Frame,PropertyChangeListener):
         if self.props:
             # a PropWindow is in the tab list
             if self.props.applyPropControlValues(self.tree\
-                                                 .GetPyData(self.selectedTreeItem)):
+                                                 .GetItemData(self.selectedTreeItem)):
                 self.setFileChanged(True)
         factions_notebook = self.notebook.getPageByTag('factions')
         if factions_notebook:
             # we have a faction window in the tabs
             if factions_notebook.applyPropControlValues(self.module.facObject):
                 self.setFileChanged(True)
-            
+
     def OnFileChanged(self,event):
         self.setFileChanged(True)
-        
+
     def about(self,event):
         '''About menu item callback.'''
         dlg = wx.MessageDialog(self,_('neveredit v') + neveredit.__version__ +
@@ -957,13 +987,13 @@ Copyright 2003-2006'''),
 
     def OnCloseToolPalette(self,event):
         self.toolPalette = None
-        
+
     def OnCloseSplash(self,event):
         self.splash = None
 
     def OnCloseWindow(self,event):
         self.scriptEditorFrame.Show(False)
-        
+
     def OnClose(self,doForce=False):
         '''Window closing callback method for the main app.'''
         self.savePrefs()
@@ -977,7 +1007,7 @@ Copyright 2003-2006'''),
             window.RemoveChild(c)
             window.AddChild(c)
             self.reparent(c,window)
-            
+
     def OnDetach(self,event):
         page = self.notebook.GetPage(self.notebook.GetSelection())
         print page
@@ -998,7 +1028,7 @@ Copyright 2003-2006'''),
             self.toolPalette.Raise()
         elif id == self.ID_SCRIPT_WINDOW_MITEM:
             self.showScriptEditor()
-            
+
     def exit(self,event):
         '''Exit the Main app, asking about possible unsaved changes.'''
         if self.OnClose():
@@ -1018,7 +1048,7 @@ Copyright 2003-2006'''),
                 self.model.UpdateKeys();
             if oldAppDir != self.prefs['NWNAppDir']:
                 self.initResourceManager()
-        
+
     def savePrefs(self):
         '''Save the current preferences settings.'''
         n = self.filehistory.GetCount()
@@ -1027,7 +1057,7 @@ Copyright 2003-2006'''),
             files.append(self.filehistory.GetHistoryFile(i))
         self.prefs['FileHistory'] = files
         self.prefs.save()
-        
+
     def loadPrefs(self):
         '''Load preferences from their standard location.'''
         self.prefs = Preferences.getPreferences()
@@ -1041,7 +1071,7 @@ Copyright 2003-2006'''),
                 continue
             #print 'trying to add',f.encode('utf8')
             self.filehistory.AddFileToHistory(f)
-        
+
     def doReadFile(self,fname):
         '''Read in a file. Does not ask about unsaved changes.
         @param fname: name of file to read
@@ -1065,14 +1095,14 @@ Copyright 2003-2006'''),
         self.filehistory.AddFileToHistory(fname)
         self.scriptEditor.setModule(self.module)
         self.SetTitle('neveredit: ' + os.path.basename(self.module.getFileName()))
-        
+
     def readFile(self,fname):
         '''Read in a file. Asks about unsaved changes.
         @param fname: name of file to read
         '''
         if self.maybeSave():
             self.doReadFile(fname)
-        
+
     def openFile(self,event):
         '''Display a dialog to find a file, and load it if user says yes.'''
         try:
@@ -1140,9 +1170,9 @@ loaded and save any changes you have made so far. Proceed?'''),
                                         _("Resource Name Error"),wx.OK|wx.ICON_ERROR)
                 dlg2.ShowModal()
                 dlg2.Destroy()
-                
-                
-        
+
+
+
     def saveFile(self,event):
         '''Save the file to the file name we loaded it from.'''
         self.maybeApplyPropControlValues()
@@ -1150,7 +1180,7 @@ loaded and save any changes you have made so far. Proceed?'''),
         self.setFileChanged(False)
         self.setStatus("Saved " + self.module.getFileName() + '.')
 
-        
+
     def saveFileAs(self,event):
         try:
             lastSaveDir = self.prefs['LastSaveDir']
@@ -1183,7 +1213,7 @@ loaded and save any changes you have made so far. Proceed?'''),
             # add a faction
             factionItem = self.tree.AppendItem(self.factionRoot,\
                 prop.getName())
-            self.tree.SetPyData(factionItem,prop)
+            self.tree.SetItemData(factionItem,prop)
             self.tree.Refresh()
             self.simulateTreeSelChange()
             self.setFileChanged(True)
@@ -1195,7 +1225,7 @@ loaded and save any changes you have made so far. Proceed?'''),
             # the modified item should be the one selected...
             item = self.tree.GetSelection()
             self.tree.SetItemText(item,control.control.GetValue())
-            data = self.tree.GetPyData(item)
+            data = self.tree.GetItemData(item)
             data.setProperty('FactionName',control.control.GetValue())
             self.simulateTreeSelChange()
             self.setFileChanged(True)
@@ -1205,7 +1235,7 @@ loaded and save any changes you have made so far. Proceed?'''),
 
 
 def run(args=None):
-    app = wx.PySimpleApp()
+    app = wx.App()
     app.SetVendorName('org.openknights')
     app.SetAppName('neveredit')
     frame = NeverEditMainWindow(None,-1,_("neveredit"))

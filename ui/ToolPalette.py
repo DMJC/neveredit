@@ -19,23 +19,24 @@ class PaletteWindow(wx.TreeCtrl):
     def __init__(self,parent,id):
         wx.TreeCtrl.__init__(self,parent,id,
                              style=wx.TR_DEFAULT_STYLE|wx.TR_HIDE_ROOT)
-        self.AddRoot("Blueprint Palette")        
+        self.AddRoot("Blueprint Palette")
         self.palette = None
         self.imagelist = wx.ImageList(16,26)
         self.SetImageList(self.imagelist)
         self.Bind(wx.EVT_TREE_ITEM_EXPANDING,self.itemExpanding)
         self.Bind(wx.EVT_TREE_SEL_CHANGING,self.selectionChanging)
         self.Bind(wx.EVT_TREE_ITEM_GETTOOLTIP,self.supplyToolTip)
-        
+
     def fromPalette(self,palette):
         self.fromPaletteHelper(self.GetRootItem(),palette.getRoots())
         self.palette = palette
-        
+
     def fromPaletteHelper(self,parentNode,childSpecs):
         for r in childSpecs:
             r.childrenReady = False
             node = self.AppendItem(parentNode,r.getName())
-            self.SetPyData(node,r)
+#            self.SetPyData(node,r)
+            self.SetItemData(node,r)
             image = r.getImage()
             if image:
                 image = image.crop((0,0,16,26))
@@ -46,24 +47,27 @@ class PaletteWindow(wx.TreeCtrl):
 
     def itemExpanding(self,event):
         item = event.GetItem()
-        data = self.GetPyData(item)
+        data = self.GetItemData(item)
         if data and not data.childrenReady:
             self.fromPaletteHelper(item,data.getChildren())
             data.childrenReady = True
 
     def selectionChanging(self,event):
+#        if event.GetItem().IsOk() and\
+#           self.GetItemData(event.GetItem()) and\
+#           not self.GetItemData(event.GetItem()).getBlueprint():
         if event.GetItem().IsOk() and\
-           self.GetPyData(event.GetItem()) and\
-           not self.GetPyData(event.GetItem()).getBlueprint():
+            self.GetItemData(event.GetItem()) and\
+            not self.GetItemData(event.GetItemData()).getBlueprint():
             event.Veto()
-            
+
     def supplyToolTip(self,event):
         if event.GetItem().IsOk() and\
-           self.GetPyData(event.GetItem()):
-            bp = self.GetPyData(event.GetItem()).getBlueprint()
-            if bp:                
+           self.GetItemData(event.GetItem()):
+            bp = self.GetItemData(event.GetItem()).getBlueprint()
+            if bp:
                 event.SetToolTip(bp.getDescription())
-    
+
     def get_standalone(cls, pname=None):
         class MyApp(wx.App):
             def OnInit(self):
@@ -102,10 +106,10 @@ class ToolSelectionEvent(wx.PyCommandEvent):
 
     def getData(self):
         return self.data
-    
+
     def getToolType(self):
         return self.tooltype
-    
+
     def Clone(self):
         self.__class__(self.GetId(),self.tooltype)
 
@@ -123,21 +127,21 @@ class ToolFrame(wx.MiniFrame):
         self.toolbar.SetBackgroundColour(wx.WHITE)
         self.toolbar.SetToolBitmapSize((26,24))
         self.selectId = SELECTION_TOOL
-        self.toolbar.AddRadioLabelTool(self.selectId,
+        self.toolbar.AddRadioTool(self.selectId,
                                        "Select/Move",
                                        select_icon_png.getBitmap(),
                                        select_icon_sel_png.getBitmap(),
                                        shortHelp=('Select Object'),
                                        longHelp='Select and Move objects on Map')
-        self.paintId = PAINT_TOOL        
-        self.toolbar.AddRadioLabelTool(self.paintId,
+        self.paintId = PAINT_TOOL
+        self.toolbar.AddRadioTool(self.paintId,
                                        "Paint",
                                        paint_icon_png.getBitmap(),
                                        paint_icon_sel_png.getBitmap(),
                                        shortHelp='Paint Objects',
                                        longHelp='Paint selected objects onto Map Display')
-        self.rotateId = ROTATE_TOOL        
-        self.toolbar.AddRadioLabelTool(self.rotateId,
+        self.rotateId = ROTATE_TOOL
+        self.toolbar.AddRadioTool(self.rotateId,
                                        "Rotate",
                                        rotate_icon_png.getBitmap(),
                                        rotate_icon_sel_png.getBitmap(),
@@ -163,10 +167,10 @@ class ToolFrame(wx.MiniFrame):
 
         self.toggleToolOn(self.selectId)
         self.lastPaletteSelection = None
-        
+
     def getActivePaletteWindow(self):
         return self.notebook.GetPage(self.notebook.GetSelection())
-    
+
     def toggleToolOn(self,id):
         for tid in self.toolIds:
             self.toolbar.ToggleTool(tid,tid==id)
@@ -181,19 +185,20 @@ class ToolFrame(wx.MiniFrame):
             bp = self.getSelectedBlueprint()
             if bp:
                 newEvent.setData(bp.toInstance())
-        self.GetEventHandler().AddPendingEvent(newEvent)        
-            
+#        self.GetEventHandler().AddPendingEvent(newEvent)
+
     def treeItemSelected(self,event):
-        if self.getActivePaletteWindow().GetPyData(event.GetItem()):
+        if self.getActivePaletteWindow().GetItemData(event.GetItem()):
+#        if self.getActivePaletteWindow().GetItemData(event.GetItemData()):
             self.toggleToolOn(self.paintId)
         event.Skip()
 
     def getSelectedBlueprint(self):
         palette = self.getActivePaletteWindow()
-        data = palette.GetPyData(palette.GetSelection())
+        data = palette.GetItemData(palette.GetSelection())
         if data:
             return data.getBlueprint()
-        
+
     def toolSelected(self,event):
         self.toggleToolOn(event.GetId())
         event.Skip()
@@ -201,12 +206,12 @@ class ToolFrame(wx.MiniFrame):
 if __name__ == "__main__":
     class MyApp(wx.App):
         def OnInit(self):
-            wx.InitAllImageHandlers()            
+            wx.InitAllImageHandlers()
             f = ToolFrame()
             f.Show(True)
             self.SetTopWindow(f)
             return True
     app = MyApp(0)
     app.MainLoop()
-    
-            
+
+
