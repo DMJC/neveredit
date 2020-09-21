@@ -1,7 +1,8 @@
 '''Some common (non-wx related) util functions'''
 import sys
 
-import PIL.Image,ImageEnhance
+from PIL import Image,ImageEnhance
+#import PIL.Image,ImageEnhance
 
 use_numeric = True
 
