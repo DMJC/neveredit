@@ -302,9 +302,9 @@ class NeverEditMainWindow(wx.Frame,PropertyChangeListener):
         self.ID_DEL = wx.NewId()
 
         if Utils.iAmOnMac():
-            wx.App_SetMacExitMenuItemId(self.ID_EXIT)
-            wx.App_SetMacPreferencesMenuItemId(self.ID_PREFS)
-            wx.App_SetMacAboutMenuItemId(self.ID_ABOUT)
+            wx.App.SetMacExitMenuItemId(self.ID_EXIT)
+            wx.App.SetMacPreferencesMenuItemId(self.ID_PREFS)
+            wx.App.SetMacAboutMenuItemId(self.ID_ABOUT)
 
         #menus
         self.filemenu = wx.Menu()
